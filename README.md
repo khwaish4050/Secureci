@@ -89,6 +89,8 @@ Use Ansible to (re)configure the EC2 instance after Terraform creates it: instal
 No local Ansible install needed (runs via Docker):
 1) Ensure Terraform has already run:
    - `cd terraform`
+
+   nothing new 
    - `terraform apply`
 2) Run Ansible:
    - `powershell -ExecutionPolicy Bypass -File ansible\\run.ps1`
