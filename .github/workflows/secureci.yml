@@ -1,0 +1,68 @@
+name: SecureCI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r backend/requirements.txt
+
+      - name: Run SecureCI Scan
+        id: secureci
+        run: |
+          set -euo pipefail
+          if python -m backend.cli scan --target . --threshold 50 > secureci-result.json; then
+            echo "secureci_failed=0" >> "$GITHUB_OUTPUT"
+          else
+            echo "secureci_failed=1" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Write Job Summary
+        run: |
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          p = Path("secureci-result.json")
+          data = json.loads(p.read_text(encoding="utf-8"))
+          decision = data.get("decision")
+          risk = data.get("risk_score")
+          thr = data.get("threshold")
+          findings = data.get("findings_count")
+          lines = []
+          lines.append("# SecureCI Scan")
+          lines.append("")
+          lines.append(f"- Decision: **{decision}**")
+          lines.append(f"- Risk score: `{risk}` (threshold `{thr}`)")
+          lines.append(f"- Findings: `{findings}`")
+          lines.append("")
+          Path(Path.cwd() / "secureci-summary.md").write_text("\\n".join(lines), encoding="utf-8")
+          print("\\n".join(lines))
+          PY
+          cat secureci-summary.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload Scan Output
+        uses: actions/upload-artifact@v4
+        with:
+          name: secureci-scan
+          path: |
+            secureci-result.json
+
+      - name: Fail If Policy Fails
+        if: steps.secureci.outputs.secureci_failed == '1'
+        run: exit 1
+

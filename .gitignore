@@ -1,0 +1,6 @@
+backend/.workdir/
+*.sqlite3
+VLE-9.extracted.txt
+**/__pycache__/
+*.pyc
+.env
