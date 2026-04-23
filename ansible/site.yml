@@ -1,0 +1,60 @@
+---
+- name: SecureCI Provisioning
+  hosts: secureci
+  become: true
+  vars:
+    secureci_root: /opt/secureci
+    secureci_repo_dir: /opt/secureci/repo
+    secureci_repo_url: "https://github.com/khwaish4050/Secureci.git"
+    secureci_repo_ref: "main"
+  tasks:
+    - name: Apt update
+      ansible.builtin.apt:
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Install base packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - git
+          - docker.io
+          - docker-compose
+        state: present
+
+    - name: Ensure docker service is enabled and running
+      ansible.builtin.service:
+        name: docker
+        enabled: true
+        state: started
+
+    - name: Create SecureCI directory
+      ansible.builtin.file:
+        path: "{{ secureci_root }}"
+        state: directory
+        mode: "0755"
+
+    - name: Checkout SecureCI repo
+      ansible.builtin.git:
+        repo: "{{ secureci_repo_url }}"
+        dest: "{{ secureci_repo_dir }}"
+        version: "{{ secureci_repo_ref }}"
+        depth: 1
+        force: true
+
+    - name: Start SecureCI via docker-compose
+      ansible.builtin.command: docker-compose up -d
+      args:
+        chdir: "{{ secureci_repo_dir }}"
+      changed_when: false
+
+    - name: Verify SecureCI health (local)
+      ansible.builtin.command: curl -fsS http://localhost:8000/api/health
+      register: health
+      changed_when: false
+
+    - name: Show health output
+      ansible.builtin.debug:
+        msg: "{{ health.stdout }}"
+

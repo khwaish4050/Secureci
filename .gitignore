@@ -4,3 +4,9 @@ VLE-9.extracted.txt
 **/__pycache__/
 *.pyc
 .env
+.terraform/
+terraform.tfstate
+terraform.tfstate.*
+crash.log
+crash.*.log
+terraform/terraform.tfvars

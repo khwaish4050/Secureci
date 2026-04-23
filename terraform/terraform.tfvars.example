@@ -1,0 +1,13 @@
+# Example values. Copy to terraform.tfvars and edit.
+#
+# Option A (recommended): let Terraform create/import an EC2 key pair from your local public key.
+public_key_path  = "C:/Users/YOU/.ssh/secureci_ed25519.pub"
+#
+# Option B: use an existing EC2 key pair name that already exists in your AWS account/region.
+# key_name         = "my-existing-keypair"
+allowed_ssh_cidr = "223.187.121.239/32"
+allowed_app_cidr = "223.187.121.239/32"
+
+# Optional: deploy a fork or different ref
+# secureci_repo_url = "https://github.com/youruser/Secureci.git"
+# secureci_repo_ref = "main"

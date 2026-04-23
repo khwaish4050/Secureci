@@ -13,3 +13,19 @@ services:
               apt-get install -y --no-install-recommends git &&
               python -m pip install -r backend/requirements.txt &&
               python -m uvicorn backend.app:app --host 0.0.0.0 --port 8000"
+
+  jenkins:
+    build:
+      context: .
+      dockerfile: jenkins/Dockerfile
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    dns:
+      - 1.1.1.1
+      - 8.8.8.8
+    volumes:
+      - jenkins_home:/var/jenkins_home
+
+volumes:
+  jenkins_home:
